@@ -16,19 +16,34 @@
     <h1>Map starts from here</h1>
     <div class="map" id="map"></div>
     <script>
+
         planes = {};
+        us_flight = 'https://opensky-network.org/api/states/all?lamin=30.038&lomin=-125.974&lamax=52.214&lomax=-68.748';
+        
+
+        function plane_marker(plane) {
+            if (planes[plane[1]]) {
+                planes[plane[1]] = planes[plane[1]].setLatLng(new L.LatLng(plane[6], plane[5]));
+            } else {
+                planes[plane[1]] = L.marker([plane[6], plane[5]], {icon:greenIcon}).addTo(map);
+            }
+        }
+        
+
         map = L.map('map').setView([40.05264061210646, -102.4081931668813], 4);
+
         L.tileLayer('https://api.maptiler.com/maps/openstreetmap/{z}/{x}/{y}.jpg?key=1oCmNBJXvSNb2J7xQsUM', {
             maxZoom: 19,
             attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
         }).addTo(map);
+
         greenIcon = L.icon({
             iconUrl: 'flight_FILL0_wght400_GRAD0_opsz24.png',
             iconSize:     [24, 24],
             iconAnchor:   [12, 12],
             popupAnchor:  [-3, -76]
         });
-        const us_flight = 'https://opensky-network.org/api/states/all?lamin=30.038&lomin=-125.974&lamax=52.214&lomax=-68.748';
+
         var xml = new XMLHttpRequest();
         xml.open('GET', us_flight, true);
         xml.send();
@@ -38,7 +53,7 @@
                 let response = JSON.parse(xml.response)['states'];
                 console.log('got the api')
                 for (i in response) {
-                    planes[response[i][1]] = L.marker([response[i][6], response[i][5]], {icon:greenIcon}).addTo(map);
+                    plane_marker(response[i], i)
                     if (i==10){break}
                 }
             } else {
@@ -46,6 +61,7 @@
                 console.log('error in api')
             }
         }
+
         setInterval(function() {
             xml.open('GET', us_flight, true);
             xml.send();
@@ -55,7 +71,7 @@
                     let response = JSON.parse(xml.response)['states'];
                     console.log('got the api')
                     for (i in response) {
-                        planes[response[i][1]] = planes[response[i][1]].setLatLng(new L.LatLng(response[i][6], response[i][5]));
+                        plane_marker(response[i], i)
                         if (i==10){break}
                     }
                 } else {
@@ -64,6 +80,7 @@
                 }
             }
         }, 12000)
+
     </script>
 </body>
 </html>
